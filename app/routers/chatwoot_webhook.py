@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
 import httpx
 import os
 
@@ -11,9 +10,7 @@ from app.services.fallback import fallback_answer
 
 router = APIRouter(prefix="/chatwoot", tags=["Chatwoot"])
 
-CHATWOOT_API_KEY = os.getenv("CHATWOOT_API_TOKEN")
-CHATWOOT_BASE_URL = "https://app.chatwoot.com"  # si tu utilises chatwoot cloud
-
+CHATWOOT_API_KEY = os.getenv("CHATWOOT_API_KEY")  # 🚨 DOIT être dans Render
 
 @router.post("/webhook")
 async def chatwoot_webhook(request: Request):
@@ -24,7 +21,7 @@ async def chatwoot_webhook(request: Request):
     event = payload.get("event")
     data = payload.get("data", {})
 
-    # Ne répondre qu'aux messages entrants du client
+    # On traite uniquement les messages entrants
     if event != "message_created":
         return {"success": True}
 
@@ -35,33 +32,37 @@ async def chatwoot_webhook(request: Request):
     if not user_message:
         return {"success": True}
 
-    # INTENT + FAQ + FALLBACK
+    # 1. Keywords
     intent = match_intent_by_keywords(user_message, intents_map)
+
+    # 2. Fallback LLM
     if not intent:
         intent = await classify_intent_llm(user_message)
 
+    # 3. Réponse FAQ
     faq_response = await get_faq_response(intent, user_message, faq_corpus)
-    bot_answer = faq_response or await fallback_answer(user_message)
+    if faq_response:
+        bot_answer = faq_response
+    else:
+        bot_answer = await fallback_answer(user_message)
 
-    # ---------- Récupération account_id + conversation_id ----------
-    account_id = payload["data"]["account_id"]
-    conversation_id = payload["data"]["conversation_id"]
+    # -----------------------------
+    # ENVOI DE LA RÉPONSE A CHATWOOT
+    # -----------------------------
+    account_id = payload["account"]["id"]
+    conversation_id = data["conversation"]["id"]
 
-    # ---------- URL de réponse ----------
-    url = f"{CHATWOOT_BASE_URL}/api/v1/accounts/{account_id}/conversations/{conversation_id}/messages"
+    url = f"https://app.chatwoot.com/api/v1/accounts/{account_id}/conversations/{conversation_id}/messages"
 
     headers = {
-        "Content-Type": "application/json",
-        "api_access_token": CHATWOOT_API_KEY
+        "Authorization": f"Bearer {CHATWOOT_API_KEY}",
+        "Content-Type": "application/json"
     }
 
-    # ---------- Envoi à Chatwoot ----------
     async with httpx.AsyncClient() as client:
-        r = await client.post(url, headers=headers, json={
+        await client.post(url, headers=headers, json={
             "content": bot_answer,
-            "message_type": "outgoing",
-            "private": False
+            "message_type": "outgoing"
         })
-        print("➡️ REPONSE CHATWOOT :", r.status_code, r.text)
 
     return {"success": True}
