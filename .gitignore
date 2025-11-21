@@ -1,0 +1,53 @@
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+
+# --- Virtual env ---
+.venv/
+env/
+venv/
+
+# --- Environment variables ---
+.env
+.env.*
+.envrc
+*.key
+*.secret
+
+# --- Logs ---
+logs.txt
+*.log
+
+# --- FastAPI / Uvicorn ---
+*.pid
+
+# --- VSCode ---
+.vscode/
+
+# --- macOS ---
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# --- Python project extras ---
+*.egg-info/
+dist/
+build/
+
+# --- Rendering / deployments ---
+site/
+
+# --- Temp files ---
+*~
+*.tmp
+*.swp
+
+# --- Local HTML demo ---
+index.html
+demo.html
+
+data/
