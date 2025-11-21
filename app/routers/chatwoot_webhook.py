@@ -65,14 +65,14 @@ async def chatwoot_webhook(request: Request):
     print(f"📤 Envoi vers Chatwoot - Account: {account_id}, Conversation: {conversation_id}")
 
     # 🚨 VÉRIFICATION CRITIQUE
-    if not CHATWOOT_API_KEY:
+    if not CHATWOOT_API_TOKEN:
         print("❌ ERREUR : CHATWOOT_API_KEY non définie !")
         return {"success": False, "error": "Missing API key"}
 
     url = f"https://app.chatwoot.com/api/v1/accounts/{account_id}/conversations/{conversation_id}/messages"
 
     headers = {
-        "api_access_token": CHATWOOT_API_KEY,  # 🔧 Fix : utilise "api_access_token" au lieu de "Authorization"
+        "api_access_token": CHATWOOT_API_TOKEN,  # 🔧 Fix : utilise "api_access_token" au lieu de "Authorization"
         "Content-Type": "application/json"
     }
 
