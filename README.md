@@ -1,5 +1,5 @@
-📘 README — Architecture & Pipeline du Chatbot PadelReference (Phase 1)
-🧩 Objectif du projet
+README — Architecture & Pipeline du Chatbot PadelReference (Phase 1)
+Objectif du projet
 
 Développer un backend FastAPI relié à un widget Tiledesk permettant :
 
@@ -15,7 +15,7 @@ d’envoyer une réponse claire et fiable au chatbot
 
 Phase 1 = Réduction de 30–40% du SAV sur les questions “poubelles”.
 
-🏗️ Architecture du projet
+Architecture du projet
 padelref/
 │
 ├── app/
@@ -41,7 +41,7 @@ padelref/
 ├── .envrc
 └── README.md
 
-📂 Rôle de chaque fichier
+Rôle de chaque fichier
 1) main.py
 
 Point d’entrée FastAPI.
@@ -92,7 +92,7 @@ Exemples :
 
 Si le keyword matcher ne trouve rien :
 
-👉 on appelle l’IA (GPT-4o-mini)
+on appelle l’IA (GPT-4o-mini)
 pour classifier le message parmi les intents :
 
 livraison
@@ -112,7 +112,7 @@ etc.
 
 Le LLM reçoit le PROMPT_INTENT_CLASSIFIER, et retourne un seul mot : le nom de l’intent.
 
-➡️ IA utilisée uniquement pour: classification sémantique fine.
+IA utilisée uniquement pour: classification sémantique fine.
 
 5) services/faq_responder.py
 
@@ -124,7 +124,7 @@ on envoie un message à l’IA pour qu’elle sélectionne la réponse la plus a
 → avec seulement les infos du corpus
 → sans inventer ni halluciner
 
-➡️ L’IA ne génère pas du contenu libre → elle choisit parmi un corpus.
+L’IA ne génère pas du contenu libre → elle choisit parmi un corpus.
 
 6) services/fallback.py
 
@@ -137,9 +137,9 @@ pas de réponse dans la FAQ
 message hors scope
 
 Alors :
-👉 l’IA génère une réponse courte, neutre, utile
-👉 invite à reformuler ou à contacter le support
-👉 sans halluciner
+- l’IA génère une réponse courte, neutre, utile
+- invite à reformuler ou à contacter le support
+- sans halluciner
 
 ➡️ C’est une sécurité.
 
@@ -201,8 +201,8 @@ Définition des intents + mots-clés associés.
 
 ➡️ Pour le routing rapide non-IA.
 
-🔥 COMMENT LE PIPELINE FONCTIONNE EXACTEMENT
-🔄 Étape 0 : Tiledesk → webhook → FastAPI
+COMMENT LE PIPELINE FONCTIONNE EXACTEMENT
+Étape 0 : Tiledesk → webhook → FastAPI
 
 Le message arrive sous forme :
 
@@ -271,16 +271,7 @@ FastAPI renvoie :
 
 Tiledesk l’affiche dans le widget.
 
-🎯 Résumé clair : quand intervient l’IA ?
-Étape	IA utilisée ?	Rôle
-Keywords matcher	❌ Non	Ultra rapide, regex
-Intent classifier	✅ Oui	Comprendre l’intention
-FAQ responder	✅ Oui	Choisir la meilleure réponse parmi JSON
-Fallback	✅ Oui	Réponse neutre et polie
-Envoi réponse	❌ Non	Simple routage
-
-
-🚀 Conclusion : Vue d’ensemble
+Conclusion : Vue d’ensemble
 
 Ton backend Phase 1 :
 
