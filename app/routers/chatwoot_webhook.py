@@ -11,7 +11,7 @@ from app.services.fallback import fallback_answer
 
 router = APIRouter(prefix="/chatwoot", tags=["Chatwoot"])
 
-CHATWOOT_API_KEY = os.getenv("CHATWOOT_API_KEY")
+CHATWOOT_API_KEY = os.getenv("CHATWOOT_API_TOKEN")
 CHATWOOT_BASE_URL = "https://app.chatwoot.com"  # si tu utilises chatwoot cloud
 
 
