@@ -1,0 +1,83 @@
+{
+  "livraison": {
+    "description": "Questions liées aux délais, suivi, frais, modes de livraison.",
+    "keywords": [
+      "livraison", "livrer", "colis", "track", "suivi", "expédié",
+      "expédition", "transporteur", "relay", "point relais",
+      "quand", "arrive", "statut colis"
+    ]
+  },
+
+  "commande": {
+    "description": "Questions sur la commande, modification, annulation.",
+    "keywords": [
+      "commande", "modifier", "annuler", "confirmation",
+      "email confirmation", "adresse", "paiement validé",
+      "finaliser ma commande"
+    ]
+  },
+
+  "retour_colis": {
+    "description": "Questions concernant les retours produit.",
+    "keywords": [
+      "retour", "renvoi", "renvoyer", "échange", "remboursement",
+      "retourner", "colis retour", "changer"
+    ]
+  },
+
+  "garantie": {
+    "description": "Questions concernant la garantie, produit défectueux.",
+    "keywords": [
+      "garantie", "défaut", "cassé", "fissure", "fendue", "problème raquette",
+      "défectueux", "casser"
+    ]
+  },
+
+  "produits": {
+    "description": "Questions générales sur les raquettes et produits.",
+    "keywords": [
+      "raquette", "modèle", "acheter", "conseil", "poids", "forme",
+      "goutte d'eau", "ronde", "diamant", "niveau", "puissance", "contrôle"
+    ]
+  },
+
+  "stock": {
+    "description": "Disponibilité des produits.",
+    "keywords": [
+      "stock", "réappro", "restock", "disponible", "rupture"
+    ]
+  },
+
+  "paiement": {
+    "description": "Questions sur moyens de paiement, 3x, CB, PayPal.",
+    "keywords": [
+      "payer", "paiement", "carte", "cb", "paypal", "3x", "4x", "plusieurs fois"
+    ]
+  },
+
+  "compte": {
+    "description": "Problèmes liés au compte client.",
+    "keywords": [
+      "compte", "connexion", "mot de passe", "login", "inscription", "identifiant"
+    ]
+  },
+
+  "magasin_physique": {
+    "description": "Demande sur magasins physiques ou showroom.",
+    "keywords": [
+      "magasin", "boutique", "physique", "adresse magasin"
+    ]
+  },
+
+  "promo": {
+    "description": "Codes promo, réductions.",
+    "keywords": [
+      "promo", "réduction", "code promo", "soldes"
+    ]
+  },
+
+  "fallback": {
+    "description": "Si aucune correspondance.",
+    "keywords": []
+  }
+}

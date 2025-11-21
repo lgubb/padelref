@@ -1,0 +1,126 @@
+{
+  "livraison": [
+    {
+      "q": "Quels sont les délais de livraison ?",
+      "a": "Les livraisons prennent généralement entre 24h et 72h selon le transporteur et votre zone. Les commandes passées avant 12h sont souvent expédiées le jour même."
+    },
+    {
+      "q": "Où est mon colis ?",
+      "a": "Vous pouvez suivre votre colis grâce au lien de suivi envoyé par email après l'expédition. Si vous ne le trouvez pas, vérifiez vos spams ou contactez le support."
+    },
+    {
+      "q": "Proposez-vous la livraison en point relais ?",
+      "a": "Oui, vous pouvez choisir la livraison en point relais si cette option apparaît lors du passage en caisse."
+    },
+    {
+      "q": "Combien coûte la livraison ?",
+      "a": "Les frais de livraison varient selon le transporteur et le montant total du panier. Ils sont affichés au moment de la validation."
+    }
+  ],
+
+  "commande": [
+    {
+      "q": "Je n’ai pas reçu l’email de confirmation.",
+      "a": "L’email peut parfois arriver dans les spams ou mettre quelques minutes à arriver. Vérifiez vos courriers indésirables ou contactez-nous si besoin."
+    },
+    {
+      "q": "Puis-je modifier ou annuler ma commande ?",
+      "a": "Si la commande n’a pas été expédiée, nous pouvons la modifier ou l’annuler. Merci de nous contacter rapidement."
+    },
+    {
+      "q": "Puis-je changer l’adresse de livraison ?",
+      "a": "Oui, tant que votre commande n’est pas expédiée. Contactez-nous au plus vite."
+    }
+  ],
+
+  "retour_colis": [
+    {
+      "q": "Comment faire un retour ?",
+      "a": "Les retours sont possibles sous 14 jours. Le chatbot peut vous guider étape par étape et vous donner l’adresse de renvoi."
+    },
+    {
+      "q": "Les retours sont-ils gratuits ?",
+      "a": "Les frais de retour dépendent du motif. Les conditions complètes sont disponibles sur notre page dédiée aux retours."
+    }
+  ],
+
+  "garantie": [
+    {
+      "q": "Ma raquette est fissurée, que faire ?",
+      "a": "Nous pouvons ouvrir une demande de garantie auprès du fournisseur. Le chatbot peut collecter les informations nécessaires."
+    },
+    {
+      "q": "Quelle est la durée de garantie sur une raquette ?",
+      "a": "La garantie dépend des marques. Elle couvre généralement entre 3 et 6 mois pour les défauts de fabrication."
+    }
+  ],
+
+  "produits": [
+    {
+      "q": "Quelle raquette choisir pour débuter ?",
+      "a": "Pour débuter, les raquettes rondes ou équilibrées sont recommandées car elles offrent davantage de contrôle."
+    },
+    {
+      "q": "Avez-vous des raquettes légères ?",
+      "a": "Oui, nous proposons plusieurs modèles légers adaptés aux joueurs recherchant maniabilité et confort."
+    },
+    {
+      "q": "Différence entre forme ronde, goutte d’eau et diamant ?",
+      "a": "La forme ronde apporte du contrôle, la goutte d’eau offre un équilibre contrôle/puissance, et la forme diamant maximise la puissance."
+    },
+    {
+      "q": "Quand un modèle sera-t-il restocké ?",
+      "a": "Les dates de réapprovisionnement varient selon les marques. Indiquez-nous le modèle exact pour vérifier sa disponibilité."
+    },
+    {
+      "q": "Puis-je avoir un avis sur une raquette ?",
+      "a": "Bien sûr ! Donnez-nous votre niveau et votre style de jeu, nous vous conseillerons."
+    }
+  ],
+
+  "stock": [
+    {
+      "q": "Un produit est en rupture, quand sera-t-il disponible ?",
+      "a": "Les réapprovisionnements dépendent des marques. Donnez-nous le modèle pour vérifier sa disponibilité."
+    }
+  ],
+
+  "paiement": [
+    {
+      "q": "Quels moyens de paiement acceptez-vous ?",
+      "a": "Nous acceptons la CB, Visa, Mastercard, PayPal et parfois le paiement en plusieurs fois selon les périodes."
+    },
+    {
+      "q": "Proposez-vous le paiement en plusieurs fois ?",
+      "a": "Selon votre mode de paiement, vous pouvez bénéficier du paiement en 3x ou 4x."
+    }
+  ],
+
+  "compte": [
+    {
+      "q": "Je n’arrive pas à me connecter à mon compte.",
+      "a": "Essayez de réinitialiser votre mot de passe. Si le problème persiste, contactez notre support."
+    }
+  ],
+
+  "magasin_physique": [
+    {
+      "q": "Avez-vous une boutique physique ?",
+      "a": "Nous fonctionnons principalement en ligne. Toutes les informations officielles sont disponibles sur notre site."
+    }
+  ],
+
+  "promo": [
+    {
+      "q": "Avez-vous des codes promo ?",
+      "a": "Les offres en cours sont affichées directement sur le site. Pour ne rien manquer, abonnez-vous à notre newsletter."
+    }
+  ],
+
+  "fallback": [
+    {
+      "q": "fallback",
+      "a": "Je n'ai pas encore la réponse à cette question, mais je peux vous rediriger vers le support si besoin."
+    }
+  ]
+}
