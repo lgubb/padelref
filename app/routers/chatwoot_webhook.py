@@ -10,34 +10,42 @@ from app.services.fallback import fallback_answer
 
 router = APIRouter(prefix="/chatwoot", tags=["Chatwoot"])
 
-CHATWOOT_API_KEY = os.getenv("CHATWOOT_API_KEY")  # 🚨 DOIT être dans Render
+CHATWOOT_API_KEY = os.getenv("CHATWOOT_API_KEY")
 
 @router.post("/webhook")
 async def chatwoot_webhook(request: Request):
-
     payload = await request.json()
     print("📩 WEBHOOK REÇU :", payload)
 
     event = payload.get("event")
-    data = payload.get("data", {})
 
     # On traite uniquement les messages entrants
     if event != "message_created":
+        print(f"⏭️ Event ignoré : {event}")
         return {"success": True}
 
-    if data.get("message_type") != "incoming":
+    data = payload.get("conversation") or payload  # 🔧 Fix structure
+    message_data = payload  # Le message lui-même
+
+    if message_data.get("message_type") != "incoming":
+        print(f"⏭️ Message sortant ignoré")
         return {"success": True}
 
-    user_message = data.get("content", "").strip()
+    user_message = message_data.get("content", "").strip()
     if not user_message:
+        print("⚠️ Message vide")
         return {"success": True}
+
+    print(f"💬 Message utilisateur : {user_message}")
 
     # 1. Keywords
     intent = match_intent_by_keywords(user_message, intents_map)
+    print(f"🔍 Intent détecté (keywords) : {intent}")
 
     # 2. Fallback LLM
     if not intent:
         intent = await classify_intent_llm(user_message)
+        print(f"🤖 Intent détecté (LLM) : {intent}")
 
     # 3. Réponse FAQ
     faq_response = await get_faq_response(intent, user_message, faq_corpus)
@@ -46,23 +54,51 @@ async def chatwoot_webhook(request: Request):
     else:
         bot_answer = await fallback_answer(user_message)
 
+    print(f"✅ Réponse générée : {bot_answer}")
+
     # -----------------------------
     # ENVOI DE LA RÉPONSE A CHATWOOT
     # -----------------------------
     account_id = payload["account"]["id"]
-    conversation_id = data["conversation"]["id"]
+    conversation_id = data["id"]
+
+    print(f"📤 Envoi vers Chatwoot - Account: {account_id}, Conversation: {conversation_id}")
+
+    # 🚨 VÉRIFICATION CRITIQUE
+    if not CHATWOOT_API_KEY:
+        print("❌ ERREUR : CHATWOOT_API_KEY non définie !")
+        return {"success": False, "error": "Missing API key"}
 
     url = f"https://app.chatwoot.com/api/v1/accounts/{account_id}/conversations/{conversation_id}/messages"
 
     headers = {
-        "Authorization": f"Bearer {CHATWOOT_API_KEY}",
+        "api_access_token": CHATWOOT_API_KEY,  # 🔧 Fix : utilise "api_access_token" au lieu de "Authorization"
         "Content-Type": "application/json"
     }
 
-    async with httpx.AsyncClient() as client:
-        await client.post(url, headers=headers, json={
-            "content": bot_answer,
-            "message_type": "outgoing"
-        })
+    body = {
+        "content": bot_answer,
+        "message_type": "outgoing",
+        "private": False  # 🔧 Important : message visible dans le chat
+    }
 
-    return {"success": True}
+    print(f"🌐 URL : {url}")
+    print(f"📦 Body : {body}")
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(url, headers=headers, json=body)
+
+            print(f"📡 Status Code : {response.status_code}")
+            print(f"📄 Réponse Chatwoot : {response.text}")
+
+            if response.status_code == 200:
+                print("✅ Message envoyé avec succès à Chatwoot")
+                return {"success": True}
+            else:
+                print(f"❌ ERREUR Chatwoot : {response.status_code} - {response.text}")
+                return {"success": False, "error": response.text}
+
+    except Exception as e:
+        print(f"💥 EXCEPTION lors de l'envoi : {str(e)}")
+        return {"success": False, "error": str(e)}
