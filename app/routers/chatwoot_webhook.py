@@ -10,7 +10,7 @@ from app.services.fallback import fallback_answer
 
 router = APIRouter(prefix="/chatwoot", tags=["Chatwoot"])
 
-CHATWOOT_API_KEY = os.getenv("CHATWOOT_API_KEY")
+CHATWOOT_API_TOKEN = os.getenv("CHATWOOT_API_TOKEN")
 
 @router.post("/webhook")
 async def chatwoot_webhook(request: Request):
