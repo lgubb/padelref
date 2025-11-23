@@ -12,8 +12,9 @@ router = APIRouter(prefix="/chatwoot", tags=["Chatwoot"])
 
 CHATWOOT_API_TOKEN = os.getenv("CHATWOOT_API_TOKEN")
 
+
 # -------------------------
-# AJOUT : mapping des clics
+# INTENTS : starters + mapping boutons
 # -------------------------
 
 INTENT_STARTERS = {
@@ -30,7 +31,29 @@ INTENT_CLICK_MAP = {
     "INTENT_CONSEIL": "conseil_produit",
 }
 
-# ----------------------------------------------------------
+
+# -------------------------
+# FONCTION utilitaire : envoyer message Chatwoot
+# -------------------------
+
+async def send_to_chatwoot(account_id: int, conversation_id: int, body: dict):
+    url = f"https://app.chatwoot.com/api/v1/accounts/{account_id}/conversations/{conversation_id}/messages"
+
+    headers = {
+        "api_access_token": CHATWOOT_API_TOKEN,
+        "Content-Type": "application/json"
+    }
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        response = await client.post(url, headers=headers, json=body)
+        print(f"[Chatwoot] Status code: {response.status_code}")
+        print(f"[Chatwoot] Response: {response.text}")
+        return response
+
+
+# -------------------------
+# WEBHOOK PRINCIPAL
+# -------------------------
 
 @router.post("/webhook")
 async def chatwoot_webhook(request: Request):
@@ -44,97 +67,98 @@ async def chatwoot_webhook(request: Request):
         print(f"⏭️ Event ignoré : {event}")
         return {"success": True}
 
-    data = payload.get("conversation") or payload  # 🔧 Fix structure
-    message_data = payload  # Le message lui-même
+    data = payload.get("conversation") or payload
+    message_data = payload
 
+    # Si ce n'est pas un message entrant → on ignore
     if message_data.get("message_type") != "incoming":
-        print(f"⏭️ Message sortant ignoré")
+        print("⏭️ Message sortant ignoré")
         return {"success": True}
 
     user_message = message_data.get("content", "").strip()
-    if not user_message:
-        print("⚠️ Message vide")
-        return {"success": True}
-
     print(f"💬 Message utilisateur : {user_message}")
 
-    # ----------------------------------------------------------
-    # 🔥 AJOUT : Gestion des clics d’intents
-    # ----------------------------------------------------------
+    account_id = payload["account"]["id"]
+    conversation_id = data["id"]
+
+    # -----------------------------------------------------
+    # 1️⃣ Détection du PREMIER MESSAGE de la conversation
+    # -----------------------------------------------------
+
+    # Méthode Chatwoot fiable :
+    # Le premier message n'a PAS de "in_reply_to"
+    is_first_message = (
+        message_data.get("content_attributes", {}).get("in_reply_to") is None
+    )
+
+    if is_first_message:
+        print("🎯 Premier message détecté → envoi du menu d’intents")
+
+        bot_answer = {
+            "content_type": "input_select",
+            "content": "Bonjour 👋\nSélectionnez une option ci-dessous ou posez une question libre :",
+            "content_attributes": {
+                "items": [
+                    {"title": "🛡 Garantie", "value": "INTENT_GARANTIE"},
+                    {"title": "📦 Suivi de commande", "value": "INTENT_SUIVI"},
+                    {"title": "🔄 Retour produit", "value": "INTENT_RETOUR"},
+                    {"title": "🎾 Conseil produit", "value": "INTENT_CONSEIL"},
+                ]
+            }
+        }
+
+        await send_to_chatwoot(account_id, conversation_id, bot_answer)
+        return {"success": True}
+
+
+    # -----------------------------------------------------
+    # 2️⃣ Détection d’un CLIC SUR UN BOUTON
+    # -----------------------------------------------------
 
     if user_message in INTENT_CLICK_MAP:
         intent_id = INTENT_CLICK_MAP[user_message]
         bot_answer = INTENT_STARTERS[intent_id]
 
-        print(f"🎯 Intent cliqué détecté : {intent_id}")
-        print(f"↪️ Réponse starter tunnel : {bot_answer}")
+        print(f"🎯 Intent cliqué : {intent_id}")
+        print(f"↪️ Réponse : {bot_answer}")
 
+        await send_to_chatwoot(account_id, conversation_id, {
+            "content": bot_answer,
+            "message_type": "outgoing",
+            "private": False
+        })
+
+        return {"success": True}
+
+
+    # -----------------------------------------------------
+    # 3️⃣ COMPORTEMENT NORMAL → FAQ + Fallback (ton logique existante)
+    # -----------------------------------------------------
+
+    print("🤖 Traitement question libre")
+
+    # 1. Keywords
+    intent = match_intent_by_keywords(user_message, intents_map)
+    print(f"🔍 Intent détecté (keywords) : {intent}")
+
+    # 2. Classif LLM
+    if not intent:
+        intent = await classify_intent_llm(user_message)
+        print(f"🤖 Intent détecté (LLM) : {intent}")
+
+    # 3. FAQ
+    faq_response = await get_faq_response(intent, user_message, faq_corpus)
+    if faq_response:
+        bot_answer = faq_response
     else:
-        # ----------------------------------------------------------
-        # 🔥 MODE NORMAL : Question libre (ton pipeline existant)
-        # ----------------------------------------------------------
+        bot_answer = await fallback_answer(user_message)
 
-        # 1. Keywords
-        intent = match_intent_by_keywords(user_message, intents_map)
-        print(f"🔍 Intent détecté (keywords) : {intent}")
+    print(f"✉️ Réponse finale : {bot_answer}")
 
-        # 2. Classif LLM
-        if not intent:
-            intent = await classify_intent_llm(user_message)
-            print(f"🤖 Intent détecté (LLM) : {intent}")
-
-        # 3. Réponse FAQ
-        faq_response = await get_faq_response(intent, user_message, faq_corpus)
-        if faq_response:
-            bot_answer = faq_response
-        else:
-            bot_answer = await fallback_answer(user_message)
-
-        print(f"✅ Réponse générée : {bot_answer}")
-
-    # -----------------------------
-    # ENVOI DE LA RÉPONSE A CHATWOOT
-    # -----------------------------
-    account_id = payload["account"]["id"]
-    conversation_id = data["id"]
-
-    print(f"📤 Envoi vers Chatwoot - Account: {account_id}, Conversation: {conversation_id}")
-
-    # 🚨 VÉRIFICATION CRITIQUE
-    if not CHATWOOT_API_TOKEN:
-        print("❌ ERREUR : CHATWOOT_API_KEY non définie !")
-        return {"success": False, "error": "Missing API key"}
-
-    url = f"https://app.chatwoot.com/api/v1/accounts/{account_id}/conversations/{conversation_id}/messages"
-
-    headers = {
-        "api_access_token": CHATWOOT_API_TOKEN,
-        "Content-Type": "application/json"
-    }
-
-    body = {
+    await send_to_chatwoot(account_id, conversation_id, {
         "content": bot_answer,
         "message_type": "outgoing",
         "private": False
-    }
+    })
 
-    print(f"🌐 URL : {url}")
-    print(f"📦 Body : {body}")
-
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(url, headers=headers, json=body)
-
-            print(f"📡 Status Code : {response.status_code}")
-            print(f"📄 Réponse Chatwoot : {response.text}")
-
-            if response.status_code == 200:
-                print("✅ Message envoyé avec succès à Chatwoot")
-                return {"success": True}
-            else:
-                print(f"❌ ERREUR Chatwoot : {response.status_code} - {response.text}")
-                return {"success": False, "error": response.text}
-
-    except Exception as e:
-        print(f"💥 EXCEPTION lors de l'envoi : {str(e)}")
-        return {"success": False, "error": str(e)}
+    return {"success": True}
