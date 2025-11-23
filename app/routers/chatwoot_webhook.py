@@ -12,6 +12,26 @@ router = APIRouter(prefix="/chatwoot", tags=["Chatwoot"])
 
 CHATWOOT_API_TOKEN = os.getenv("CHATWOOT_API_TOKEN")
 
+# -------------------------
+# AJOUT : mapping des clics
+# -------------------------
+
+INTENT_STARTERS = {
+    "garantie": "Très bien, parlons garantie 👇\nPouvez-vous me donner la marque et le modèle du produit ?",
+    "suivi_commande": "Bien sûr ! Pouvez-vous me donner votre numéro de commande ?",
+    "retour_produit": "Pas de souci 👇\nQuel est le numéro de commande concerné ?",
+    "conseil_produit": "Super ! Quel est votre niveau en padel (débutant, intermédiaire, avancé) ?"
+}
+
+INTENT_CLICK_MAP = {
+    "INTENT_GARANTIE": "garantie",
+    "INTENT_SUIVI": "suivi_commande",
+    "INTENT_RETOUR": "retour_produit",
+    "INTENT_CONSEIL": "conseil_produit",
+}
+
+# ----------------------------------------------------------
+
 @router.post("/webhook")
 async def chatwoot_webhook(request: Request):
     payload = await request.json()
@@ -38,23 +58,39 @@ async def chatwoot_webhook(request: Request):
 
     print(f"💬 Message utilisateur : {user_message}")
 
-    # 1. Keywords
-    intent = match_intent_by_keywords(user_message, intents_map)
-    print(f"🔍 Intent détecté (keywords) : {intent}")
+    # ----------------------------------------------------------
+    # 🔥 AJOUT : Gestion des clics d’intents
+    # ----------------------------------------------------------
 
-    # 2. Fallback LLM
-    if not intent:
-        intent = await classify_intent_llm(user_message)
-        print(f"🤖 Intent détecté (LLM) : {intent}")
+    if user_message in INTENT_CLICK_MAP:
+        intent_id = INTENT_CLICK_MAP[user_message]
+        bot_answer = INTENT_STARTERS[intent_id]
 
-    # 3. Réponse FAQ
-    faq_response = await get_faq_response(intent, user_message, faq_corpus)
-    if faq_response:
-        bot_answer = faq_response
+        print(f"🎯 Intent cliqué détecté : {intent_id}")
+        print(f"↪️ Réponse starter tunnel : {bot_answer}")
+
     else:
-        bot_answer = await fallback_answer(user_message)
+        # ----------------------------------------------------------
+        # 🔥 MODE NORMAL : Question libre (ton pipeline existant)
+        # ----------------------------------------------------------
 
-    print(f"✅ Réponse générée : {bot_answer}")
+        # 1. Keywords
+        intent = match_intent_by_keywords(user_message, intents_map)
+        print(f"🔍 Intent détecté (keywords) : {intent}")
+
+        # 2. Classif LLM
+        if not intent:
+            intent = await classify_intent_llm(user_message)
+            print(f"🤖 Intent détecté (LLM) : {intent}")
+
+        # 3. Réponse FAQ
+        faq_response = await get_faq_response(intent, user_message, faq_corpus)
+        if faq_response:
+            bot_answer = faq_response
+        else:
+            bot_answer = await fallback_answer(user_message)
+
+        print(f"✅ Réponse générée : {bot_answer}")
 
     # -----------------------------
     # ENVOI DE LA RÉPONSE A CHATWOOT
@@ -72,14 +108,14 @@ async def chatwoot_webhook(request: Request):
     url = f"https://app.chatwoot.com/api/v1/accounts/{account_id}/conversations/{conversation_id}/messages"
 
     headers = {
-        "api_access_token": CHATWOOT_API_TOKEN,  # 🔧 Fix : utilise "api_access_token" au lieu de "Authorization"
+        "api_access_token": CHATWOOT_API_TOKEN,
         "Content-Type": "application/json"
     }
 
     body = {
         "content": bot_answer,
         "message_type": "outgoing",
-        "private": False  # 🔧 Important : message visible dans le chat
+        "private": False
     }
 
     print(f"🌐 URL : {url}")
